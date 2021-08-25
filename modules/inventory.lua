@@ -1,9 +1,10 @@
 require("modules.preparing")
 
-
+local ALLOW_DUPLICATES = {}
+ALLOW_DUPLICATES["minecraft:water_bucket"] = true
 
 Inventory = {
-    --get slot from item name
+    --get slot(s) from item name
     slot = {},
     leastFreeSlot = 1
 
@@ -14,19 +15,11 @@ Inventory = {
 function Inventory:dump(index)
     select(index)
     if not turtle.refuel() then turtle.dropDown() end
-    select(1)
 end
 
 
 
 function Inventory:dumpTrash()
-    --[[
-    for name, idx in pairs(self.slot) do
-        if not OBJECTIVES[name] then
-            self:dump(idx)
-        end
-    end
-    ]]--
     for i=1, 16, 1 do
         turtle.select(i)
         local data = turtle.getItemDetail()
@@ -34,7 +27,6 @@ function Inventory:dumpTrash()
             self:dump(i)
         end
     end
-    turtle.select(1)
 end
 
 
@@ -47,21 +39,23 @@ function Inventory:sort()
         local data = turtle.getItemDetail()
         if data then
             if self.slot[data.name] then
-                if data.name == "minecraft:water_bucket" then
-                    turtle.transferTo(self.leastFreeSlot)
-                    self.slot[data.name] = {self.slot[data.name], self.leastFreeSlot}
-                    self.leastFreeSlot = self.leastFreeSlot + 1
-                elseif not turtle.transferTo(self.slot[data.name]) then
-                    self:dump(i)
+                if not turtle.transferTo(self.slot[data.name][1]) then
+                    if ALLOW_DUPLICATES[data.name] then
+                        turtle.transferTo(self.leastFreeSlot)
+                        table.insert(self.slot[data.name], self.leastFreeSlot)
+                        self.leastFreeSlot = self.leastFreeSlot + 1
+                    else
+                        self:dump(i)
+                    end
                 end
             else
-                self.slot[data.name] = self.leastFreeSlot
+
+                self.slot[data.name] = {self.leastFreeSlot}
                 self.leastFreeSlot = self.leastFreeSlot + 1
-                if i ~= self.slot[data.name] then turtle.transferTo(self.slot[data.name]) end
+                if i ~= self.slot[data.name][1] then turtle.transferTo(self.slot[data.name][1]) end
             end
         end
     end
-    turtle.select(1)
 end
 
 
@@ -69,4 +63,36 @@ end
 function Inventory:cleanup()
     self:dumpTrash()
     self:sort()
+    turtle.select(math.min(self.leastFreeSlot, 16))
+end
+
+
+
+function Inventory:fastCleanup()
+    self.slot = {}
+    self.leastFreeSlot = 17
+    for i=1, 16, 1 do
+        turtle.select(i)
+        local data = turtle.getItemDetail()
+        if data and OBJECTIVES[data.name] then
+            if self.slot[data.name] then
+                if not turtle.transferTo(self.slot[data.name][1]) then
+                    if ALLOW_DUPLICATES[data.name] then
+                        table.insert(self.slot[data.name], i)
+                    else
+                        self:dump(i)
+                        self.leastFreeSlot = math.min(self.leastFreeSlot, i)
+                    end
+                else
+                    self.leastFreeSlot = math.min(self.leastFreeSlot, i)
+                end
+            else
+                self.slot[data.name] = {i}
+            end
+        else
+            if data then self:dump(i) end
+            self.leastFreeSlot = math.min(self.leastFreeSlot, i)
+        end
+    end
+    turtle.select(math.min(self.leastFreeSlot, 16))
 end
