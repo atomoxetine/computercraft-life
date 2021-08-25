@@ -22,6 +22,8 @@ OBJECTIVES["minecraft:bone_meal"] = 0
 OBJECTIVES["minecraft:spruce_log"] = 0
 OBJECTIVES["minecraft:furnace"] = 0
 OBJECTIVES["computercraft:disk_drive"] = 0
+OBJECTIVES["computercraft:turtle_normal"] = 0
+OBJECTIVES["computercraft:turtle_advanced"] = 0
 
 --[[
     explaination:
