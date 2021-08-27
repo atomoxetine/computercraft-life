@@ -1,9 +1,25 @@
 
-MIN_FUEL = 100
+MIN_FUEL = 200
 
 FUEL = {["minecraft:coal"] = 80,
              ["minecraft:charcoal"] = 80,
              ["minecraft:coal_block"] = 800}
+
+VEIN = {["minecraft:coal_ore"]=true,
+       ["minecraft:diamond_ore"]=true,
+       ["minecraft:iron_ore"]=true,
+       ["minecraft:redstone_ore"]=true,
+       ["minecraft:dirt"]=true}
+
+ORE_TO_ITEM = {
+    ["minecraft:coal_ore"] = "minecraft:coal",
+    ["minecraft:diamond_ore"] = "minecraft:diamond",
+    ["minecraft:redstone_ore"] = "minecraft:redstone"}
+
+setmetatable(ORE_TO_ITEM, {__index = function (table, key) return key end })
+
+ALLOW_DUPLICATES = {["minecraft:water_bucket"] = true}
+setmetatable(ALLOW_DUPLICATES, {__index = function () return false end})
 
 --relationship between needed resources and amount needed for replicating
 OBJECTIVES = {["minecraft:cobblestone"] = 64,
@@ -70,8 +86,9 @@ end
 function extractSign(number)
     if type(number) ~= "number" then return nil end
     
-    if number == 0 then return 0
-    else return number/math.abs(number) end
+    if number < 0 then return -1
+    elseif number > 0 then return 1
+    else return 0 end
 end
 
 function autoRefuel()
@@ -80,39 +97,36 @@ end
 
 function inspect()
     local success, data = turtle.inspect()
-    if success then data = data.name
-    else data = "minecraft:air" end
-    return data
+    if success then return data.name
+    else return "minecraft:air" end
 end
 
 function inspectDown()
     local success, data = turtle.inspectDown()
-    if success then data = data.name
-    else data = "minecraft:air" end
-    return data
+    if success then return data.name
+    else return "minecraft:air" end
 end
 
 function inspectUp()
     local success, data = turtle.inspectUp()
-    if success then data = data.name
-    else data = "minecraft:air" end
-    return data
+    if success then return data.name
+    else return "minecraft:air" end
 end
 
 function dig()
     local result = turtle.dig()
-    if result then Inventory.instantCleanup() return true
+    if result then Inventory.instantCleanup() Inventory.recount() return true
     else return false end
 end
 
 function digUp()
     local result = turtle.digUp()
-    if result then Inventory.instantCleanup() return true
+    if result then Inventory.instantCleanup() Inventory.recount() return true
     else return false end
 end
 
 function digDown()
     local result = turtle.digDown()
-    if result then Inventory.instantCleanup() return true
+    if result then Inventory.instantCleanup() Inventory.recount() return true
     else return false end
 end

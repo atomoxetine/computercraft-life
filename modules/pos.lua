@@ -1,20 +1,21 @@
+require("modules.global")
 
 --relative coordinate system
 posX = 0
 posY = 0
 posZ = 0
-local facing = 1
+facing = 1
 
-local facingAdd = {{x=1,z=0},
-                   {x=0,z=1},
-                   {x=-1,z=0},
-                   {x=0,z=-1}}
+FACING_ADD = {{x=1,z=0},
+              {x=0,z=1},
+              {x=-1,z=0},
+              {x=0,z=-1}}
 
 function forward()
     if not turtle.forward() then return false end
     
-    posX = posX + facingAdd[facing].x
-    posZ = posZ + facingAdd[facing].z
+    posX = posX + FACING_ADD[facing].x
+    posZ = posZ + FACING_ADD[facing].z
 
     return true
 end
@@ -22,8 +23,8 @@ end
 function back()
     if not turtle.back() then return false end
     
-    posX = posX - facingAdd[facing].x
-    posZ = posZ - facingAdd[facing].z
+    posX = posX - FACING_ADD[facing].x
+    posZ = posZ - FACING_ADD[facing].z
 
     return true
 end
@@ -59,10 +60,16 @@ function turnLeft()
 end
 
 function turnTo(direction)
+    if not direction then return end
+    
     local diff = direction - facing
-    if math.abs(direction + 4 - facing) < math.abs(diff) then diff = direction + 4 - facing end
-    if diff > 0 then for i=1, diff, 1 do turnRight() end
-    else for i=1, -diff, 1 do turnLeft() end end
+    if diff > 2 then diff = -1
+    elseif diff < -2 then diff = 1 end
+    
+    for i=1, math.abs(diff), 1 do
+        if diff > 0 then turnRight()
+        elseif diff < 0 then turnLeft() end
+    end
 end
 
 
@@ -77,30 +84,28 @@ function goToPos(x, y, z)
     local deltaZ = z - posZ
 
     local directionX = 1
-    if extractSign(deltaX) == -1 then directionX = 3
-    else directionX = nil end
+    if extractSign(deltaX) == -1 then directionX = 3 end
 
     local directionZ = 2
-    if extractSign(deltaZ) == -1 then directionZ = 4
-    else directionZ = nil end
+    if extractSign(deltaZ) == -1 then directionZ = 4 end
 
-    if deltaY > 0 then
-        for i=1, deltaY, 1 do
-            while not up() do turtle.digUp() end
-        end
-    else
-        for i=1, -deltaY, 1 do
-            while not down() do turtle.digDown() end
+    for i=1, math.abs(deltaY), 1 do
+        if deltaY > 0 then
+            while not up() do digUp() end
+        elseif deltaY < 0 then
+            while not down() do digDown() end
         end
     end
 
-    turnTo(directionX)
-    for i=1, math.abs(deltaX), 1 do
-        while not forward() do turtle.dig() end
+    if deltaX ~= 0 then turnTo(directionX)
+        for i=1, math.abs(deltaX), 1 do
+            while not forward() do dig() end
+        end
     end
 
-    turnTo(directionZ)
-    for i=1, math.abs(deltaZ), 1 do
-        while not forward() do turtle.dig() end
+    if deltaZ ~= 0 then turnTo(directionZ)
+        for i=1, math.abs(deltaZ), 1 do
+            while not forward() do dig() end
+        end
     end
 end

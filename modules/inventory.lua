@@ -1,14 +1,13 @@
 require("modules.global")
 
-local ALLOW_DUPLICATES = {["minecraft:water_bucket"] = true}
-setmetatable(ALLOW_DUPLICATES, {__index = function () return false end})
 
 
 Inventory = {
     --get slot(s) from item name
     slot = {},
-    leastFreeSlot = 1
-
+    leastFreeSlot = 1,
+    --get count from item name
+    count = setmetatable({}, {__index = function () return 0 end})
 }
 
 
@@ -73,7 +72,7 @@ function Inventory.cleanup()
 end
 
 
---[[
+--deprecated
 function Inventory.fastCleanup()
     Inventory.slot = {}
     Inventory.leastFreeSlot = 17
@@ -102,7 +101,7 @@ function Inventory.fastCleanup()
     end
     turtle.select(1)
 end
-]]--
+
 
 
 function Inventory.refuel()
@@ -148,8 +147,7 @@ Inventory.slot
 
 ]]--
 function Inventory.instantCleanup()
-    turtle.select(Inventory.leastFreeSlot)
-    local item = turtle.getItemDetail()
+    local item = turtle.getItemDetail(Inventory.leastFreeSlot)
     if item then
         if OBJECTIVES[item.name] then
             if Inventory.slot[item.name] and not ALLOW_DUPLICATES[item.name] then 
@@ -164,4 +162,17 @@ function Inventory.instantCleanup()
 
     if Inventory.leastFreeSlot >= 17 then Inventory.cleanup() end
     turtle.select(1)
+end
+
+
+
+function Inventory.recount()
+    Inventory.count = setmetatable({}, {__index = function () return 0 end})
+    
+    for item, slots in pairs(Inventory.slot) do
+        for i, slot in ipairs(slots) do
+            local data = turtle.getItemDetail(slot)
+            if data then Inventory.count[item] = Inventory.count[item] + data.count end
+        end
+    end
 end
