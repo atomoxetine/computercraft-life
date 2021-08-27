@@ -1,3 +1,3 @@
-require("modules.inventory")
+require("modules.main")
 
-Inventory:fastCleanup()
+Main.start()
