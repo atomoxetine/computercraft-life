@@ -12,6 +12,7 @@ FACING_ADD = {{x=1,z=0},
               {x=0,z=-1}}
 
 function forward()
+    autoRefuel()
     if not turtle.forward() then return false end
     
     posX = posX + FACING_ADD[facing].x
@@ -21,6 +22,7 @@ function forward()
 end
 
 function back()
+    autoRefuel()
     if not turtle.back() then return false end
     
     posX = posX - FACING_ADD[facing].x
@@ -30,6 +32,7 @@ function back()
 end
 
 function up()
+    autoRefuel()
     if not turtle.up() then return false end
     
     posY = posY + 1
@@ -37,6 +40,7 @@ function up()
 end
 
 function down()
+    autoRefuel()
     if not turtle.down() then return false end
     
     posY = posY - 1

@@ -27,7 +27,6 @@ function PreparingPhase:run()
     for i, objective in ipairs(OBJECTIVE_ORDER) do
         while self.progress[objective] < OBJECTIVES[objective] do
             autoRefuel()
-            print()
             self.SOLVE[objective](self)
             if os.clock() - self.lastCleanupTime >= 10 then
                 Inventory.cleanup()
@@ -164,6 +163,9 @@ end
 
 
 
+
+
+
 PreparingPhase.SOLVE["minecraft:diamond"] = function (self)
     if not hasDescended then
         self:descend()
@@ -174,10 +176,6 @@ PreparingPhase.SOLVE["minecraft:diamond"] = function (self)
     end
 end
 
-PreparingPhase.SOLVE["minecraft:redstone"] = PreparingPhase.SOLVE["minecraft:diamond"]
-PreparingPhase.SOLVE["minecraft:iron_ore"] = PreparingPhase.SOLVE["minecraft:diamond"]
-PreparingPhase.SOLVE["minecraft:cobblestone"] = PreparingPhase.SOLVE["minecraft:diamond"]
-PreparingPhase.SOLVE["minecraft:dirt"] = PreparingPhase.SOLVE["minecraft:diamond"]
 
 PreparingPhase.SOLVE["minecraft:sand"] = function (self)
     local data = inspect()

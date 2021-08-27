@@ -68,6 +68,7 @@ function Inventory.cleanup()
         Inventory.freeStorage()
         Inventory.sort()
     end
+    Inventory.recount()
     turtle.select(1)
 end
 
@@ -100,6 +101,7 @@ function Inventory.fastCleanup()
         end
     end
     turtle.select(1)
+    Inventory.recount()
 end
 
 
@@ -175,4 +177,72 @@ function Inventory.recount()
             if data then Inventory.count[item] = Inventory.count[item] + data.count end
         end
     end
+end
+
+
+
+--uses 13 as default buffer
+function Inventory.switch(slot1, slot2, amount)
+    local buffer = 13
+
+    if not (turtle.getItemDetail(slot1) and turtle.getItemDetail(slot2)) then
+        if turtle.getItemDetail(slot1) then
+            turtle.select(slot1)
+            turtle.transferTo(slot2, amount)
+        elseif turtle.getItemDetail(slot2) then
+            turtle.select(slot2)
+            turtle.transferTo(slot2, amount)
+        end
+    else
+
+        turtle.select(slot1)
+        turtle.transferTo(buffer)
+        turtle.select(slot2)
+        turtle.transferTo(slot1)
+        turtle.select(buffer)
+        turtle.transferTo(slot2)
+
+    end
+end
+
+function Inventory.craft(recipe, amount)
+    Inventory.safeSort()
+    for i=3, 1, -1 do
+        for j=3, 1, -1 do
+            if recipe[i][j] then
+                Inventory.switch(Inventory.slot[recipe[i][j]][1], 1 + 4*i + j, amount)
+            end
+        end
+    end
+    turtle.select(1)
+    turtle.craft()
+    return 1
+end
+
+
+
+
+function Inventory.safeSort()
+    Inventory.slot = {}
+    Inventory.leastFreeSlot = 1
+    for i=1, 16, 1 do
+        turtle.select(i)
+        local data = turtle.getItemDetail()
+        if data then
+            if Inventory.slot[data.name] then
+                if not turtle.transferTo(Inventory.slot[data.name][1]) then
+                    turtle.transferTo(Inventory.leastFreeSlot)
+                    table.insert(Inventory.slot[data.name], Inventory.leastFreeSlot)
+                    Inventory.leastFreeSlot = Inventory.leastFreeSlot + 1
+                end
+            else
+
+                Inventory.slot[data.name] = {Inventory.leastFreeSlot}
+                Inventory.leastFreeSlot = Inventory.leastFreeSlot + 1
+                if i ~= Inventory.slot[data.name][1] then turtle.transferTo(Inventory.slot[data.name][1]) end
+            end
+        end
+    end
+    turtle.select(1)
+    Inventory.recount()
 end
